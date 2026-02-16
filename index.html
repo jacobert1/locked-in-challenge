@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LOCKED IN — 6 Week Challenge</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@400;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --fire: #FF4500;
+    --ember: #FF8C00;
+    --gold: #FFD700;
+    --dark: #0A0A0A;
+    --panel: #111111;
+    --border: #222222;
+    --text: #E8E8E8;
+    --muted: #666666;
+    --green: #22C55E;
+    --red: #EF4444;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--dark);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    min-height: 100vh;
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(255,69,0,0.02) 40px, rgba(255,69,0,0.02) 41px),
+      repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(255,69,0,0.02) 40px, rgba(255,69,0,0.02) 41px);
+  }
+
+  /* SYNC BANNER */
+  .sync-banner {
+    background: rgba(255,69,0,0.1);
+    border-bottom: 1px solid rgba(255,69,0,0.3);
+    padding: 8px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  .sync-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--green);
+    display: inline-block;
+    margin-right: 8px;
+    animation: pulse 2s infinite;
+  }
+  .sync-dot.loading { background: var(--ember); animation: pulse 0.5s infinite; }
+  .sync-dot.error { background: var(--red); animation: none; }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(180deg, #1a0800 0%, var(--dark) 100%);
+    border-bottom: 2px solid var(--fire);
+    padding: 24px 40px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, transparent, var(--fire), var(--gold), var(--fire), transparent);
+    animation: burn 3s ease-in-out infinite;
+  }
+  @keyframes burn { 0%,100%{opacity:0.6;} 50%{opacity:1;} }
+  .header-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(36px, 6vw, 64px);
+    letter-spacing: 4px;
+    background: linear-gradient(135deg, var(--fire), var(--gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+  }
+  .logo span {
+    background: none;
+    -webkit-text-fill-color: var(--muted);
+    font-size: 0.45em;
+    letter-spacing: 8px;
+    display: block;
+    margin-top: 2px;
+  }
+  .week-badge { text-align: right; }
+  .week-label { font-family: 'Barlow Condensed', sans-serif; font-size: 12px; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; }
+  .week-num { font-family: 'Bebas Neue', sans-serif; font-size: 48px; color: var(--fire); line-height: 1; }
+  .pot-display {
+    text-align: center;
+    background: rgba(255,69,0,0.08);
+    border: 1px solid rgba(255,69,0,0.3);
+    border-radius: 8px;
+    padding: 10px 24px;
+  }
+  .pot-label { font-size: 11px; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; }
+  .pot-amount { font-family: 'Bebas Neue', sans-serif; font-size: 36px; color: var(--gold); line-height: 1.1; }
+
+  .main { max-width: 1100px; margin: 0 auto; padding: 32px 20px; }
+
+  /* SCOREBOARD */
+  .scoreboard { display: grid; grid-template-columns: 1fr auto 1fr; gap: 16px; align-items: center; margin-bottom: 32px; }
+  .player-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s;
+  }
+  .player-card.leader {
+    border-color: var(--fire);
+    box-shadow: 0 0 30px rgba(255,69,0,0.15), inset 0 0 40px rgba(255,69,0,0.03);
+  }
+  .player-card.leader::after {
+    content: '🔥 LEADING';
+    position: absolute;
+    top: 12px; right: 12px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--fire);
+    font-weight: 700;
+  }
+  .player-num { font-family: 'Barlow Condensed', sans-serif; font-size: 11px; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; margin-bottom: 4px; }
+  .player-name { font-family: 'Bebas Neue', sans-serif; font-size: 40px; letter-spacing: 2px; line-height: 1; margin-bottom: 20px; }
+  .score-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .score-item { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 6px; padding: 10px 8px; text-align: center; }
+  .score-val { font-family: 'Bebas Neue', sans-serif; font-size: 28px; line-height: 1; color: var(--text); }
+  .score-val.fire { color: var(--fire); }
+  .score-val.gold { color: var(--gold); }
+  .score-label { font-size: 10px; letter-spacing: 1.5px; color: var(--muted); text-transform: uppercase; margin-top: 3px; }
+  .total-score { margin-top: 16px; padding: 12px; background: rgba(255,69,0,0.08); border-radius: 8px; display: flex; align-items: center; justify-content: space-between; }
+  .total-label { font-family: 'Barlow Condensed', sans-serif; font-size: 13px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; font-weight: 600; }
+  .total-val { font-family: 'Bebas Neue', sans-serif; font-size: 42px; color: var(--fire); line-height: 1; }
+  .vs-divider { text-align: center; }
+  .vs-text { font-family: 'Bebas Neue', sans-serif; font-size: 28px; color: var(--muted); display: block; }
+  .gap-display { font-family: 'Barlow Condensed', sans-serif; font-size: 12px; color: var(--muted); letter-spacing: 1px; display: block; text-align: center; margin-top: 8px; }
+  .gap-num { font-family: 'Bebas Neue', sans-serif; font-size: 22px; display: block; color: var(--gold); }
+
+  /* PROGRESS */
+  .progress-section { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; margin-bottom: 24px; }
+  .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .progress-title { font-family: 'Barlow Condensed', sans-serif; font-size: 13px; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; font-weight: 700; }
+  .track { background: var(--border); border-radius: 4px; height: 8px; position: relative; margin-bottom: 8px; }
+  .fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--fire), var(--ember)); transition: width 0.8s cubic-bezier(0.4,0,0.2,1); position: relative; }
+  .fill::after { content: ''; position: absolute; right: 0; top: -3px; width: 14px; height: 14px; background: var(--gold); border-radius: 50%; box-shadow: 0 0 8px var(--gold); }
+  .week-markers { display: flex; justify-content: space-between; margin-top: 6px; }
+  .week-marker { font-size: 10px; color: var(--muted); letter-spacing: 1px; }
+
+  /* TABS */
+  .tabs { display: flex; gap: 4px; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 4px; margin-bottom: 24px; flex-wrap: wrap; }
+  .tab { flex: 1; min-width: 80px; padding: 10px; background: none; border: none; color: var(--muted); font-family: 'Barlow Condensed', sans-serif; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; font-weight: 600; cursor: pointer; border-radius: 7px; transition: all 0.2s; }
+  .tab.active { background: var(--fire); color: white; }
+  .tab:hover:not(.active) { color: var(--text); background: rgba(255,255,255,0.05); }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* LOG DAILY */
+  .log-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .log-card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+  .log-card h3 { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 2px; margin-bottom: 20px; color: var(--fire); }
+  .habit-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .habit-row:last-child { border-bottom: none; }
+  .habit-info { display: flex; align-items: center; gap: 10px; }
+  .habit-icon { font-size: 18px; }
+  .habit-name { font-size: 14px; font-weight: 500; }
+  .habit-pts { font-size: 11px; color: var(--muted); }
+  .toggle { width: 44px; height: 24px; background: var(--border); border-radius: 12px; border: none; cursor: pointer; position: relative; transition: background 0.2s; flex-shrink: 0; }
+  .toggle::after { content: ''; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; background: var(--muted); border-radius: 50%; transition: all 0.2s; }
+  .toggle.on { background: var(--green); }
+  .toggle.on::after { left: 23px; background: white; }
+  .date-row { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+  .date-row label { font-size: 12px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
+  .date-row input { background: var(--border); border: 1px solid #333; border-radius: 6px; padding: 6px 12px; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 14px; }
+  .save-btn { width: 100%; margin-top: 16px; padding: 14px; background: linear-gradient(135deg, var(--fire), var(--ember)); border: none; border-radius: 8px; color: white; font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 3px; cursor: pointer; transition: transform 0.1s, box-shadow 0.2s; }
+  .save-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(255,69,0,0.4); }
+  .save-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  /* WEIGH IN */
+  .weigh-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .weigh-card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+  .weigh-card h3 { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 2px; margin-bottom: 20px; color: var(--ember); }
+  .input-group { margin-bottom: 16px; }
+  .input-group label { display: block; font-size: 11px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 6px; }
+  .input-group input, .input-group select { width: 100%; background: #1a1a1a; border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 16px; transition: border-color 0.2s; }
+  .input-group input:focus, .input-group select:focus { outline: none; border-color: var(--fire); }
+  .weight-val-big { font-family: 'Bebas Neue', sans-serif; font-size: 28px; }
+  .chart-bars { display: flex; align-items: flex-end; gap: 6px; height: 80px; margin-top: 10px; }
+  .chart-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end; }
+  .chart-bar { width: 100%; background: linear-gradient(0deg, var(--fire), var(--ember)); border-radius: 3px 3px 0 0; min-height: 4px; transition: height 0.5s; }
+  .chart-bar-label { font-size: 9px; color: var(--muted); }
+
+  /* SAVAGE */
+  .challenges-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
+  .challenge-card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 16px; position: relative; }
+  .challenge-week { font-family: 'Barlow Condensed', sans-serif; font-size: 11px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
+  .challenge-name { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 1px; margin: 6px 0; line-height: 1.1; }
+  .challenge-pts { font-size: 12px; color: var(--gold); font-weight: 600; }
+  .challenge-winner { display: flex; gap: 8px; margin-top: 12px; }
+  .winner-btn { flex: 1; padding: 8px 4px; border-radius: 6px; border: 1px solid var(--border); background: none; color: var(--muted); font-family: 'Barlow Condensed', sans-serif; font-size: 13px; letter-spacing: 1px; font-weight: 700; cursor: pointer; transition: all 0.2s; text-transform: uppercase; }
+  .winner-btn:hover { border-color: var(--fire); color: var(--fire); }
+  .winner-btn.selected { background: var(--fire); border-color: var(--fire); color: white; }
+  .winner-btn.tie.selected { background: var(--gold); border-color: var(--gold); color: var(--dark); }
+  .challenge-locked { position: absolute; inset: 0; background: rgba(10,10,10,0.7); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 2px; color: var(--muted); }
+  .challenge-card.unlocked .challenge-locked { display: none; }
+
+  /* HISTORY */
+  .history-table { width: 100%; border-collapse: collapse; }
+  .history-table th { font-family: 'Barlow Condensed', sans-serif; font-size: 11px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; padding: 12px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+  .history-table td { padding: 10px 10px; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+  .history-table tr:hover td { background: rgba(255,255,255,0.02); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+  .dot.on { background: var(--green); }
+  .dot.off { background: var(--border); }
+
+  /* SETTINGS */
+  .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .settings-card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+  .settings-card h3 { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; color: var(--ember); margin-bottom: 16px; }
+  .text-input { width: 100%; background: #1a1a1a; border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 15px; }
+  .text-input:focus { outline: none; border-color: var(--fire); }
+
+  /* PENALTIES */
+  .penalty-card { background: var(--panel); border: 1px solid rgba(239,68,68,0.3); border-radius: 12px; padding: 24px; margin-bottom: 16px; }
+  .penalty-card h3 { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; color: var(--red); margin-bottom: 16px; }
+  .penalty-row { display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; align-items: end; margin-bottom: 12px; }
+  .penalty-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .p-neg { color: var(--red); font-weight: 600; }
+  .red-btn { padding: 10px 20px; background: rgba(239,68,68,0.15); border: 1px solid var(--red); border-radius: 8px; color: var(--red); font-family: 'Barlow Condensed', sans-serif; font-size: 14px; letter-spacing: 2px; font-weight: 700; cursor: pointer; transition: all 0.2s; text-transform: uppercase; white-space: nowrap; }
+  .red-btn:hover { background: var(--red); color: white; }
+  .select-input { background: #1a1a1a; border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 14px; width: 100%; cursor: pointer; }
+
+  /* LOADING OVERLAY */
+  .loading-overlay { position: fixed; inset: 0; background: rgba(10,10,10,0.85); z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; }
+  .loading-overlay.hidden { display: none; }
+  .spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--fire); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 4px; color: var(--fire); }
+
+  /* TOAST */
+  .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 100; display: flex; flex-direction: column; gap: 8px; }
+  .toast { background: #1a1a1a; border: 1px solid var(--fire); border-radius: 8px; padding: 12px 20px; font-family: 'Barlow Condensed', sans-serif; font-size: 15px; letter-spacing: 1px; animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards; min-width: 220px; }
+  @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+
+  .section-header { font-family: 'Barlow Condensed', sans-serif; font-size: 11px; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; font-weight: 700; margin-bottom: 14px; }
+
+  @media (max-width: 700px) {
+    .header { padding: 16px 16px 14px; }
+    .sync-banner { padding: 8px 16px; }
+    .scoreboard { grid-template-columns: 1fr; }
+    .vs-divider { display: none; }
+    .log-grid, .weigh-grid, .settings-grid { grid-template-columns: 1fr; }
+    .challenges-grid { grid-template-columns: 1fr 1fr; }
+    .penalty-row { grid-template-columns: 1fr; }
+    .main { padding: 16px 12px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Loading overlay -->
+<div class="loading-overlay hidden" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-text">SYNCING...</div>
+</div>
+
+<!-- Sync status banner -->
+<div class="sync-banner">
+  <div><span class="sync-dot" id="syncDot"></span><span id="syncStatus">LIVE SYNC ON</span></div>
+  <div id="lastSync" style="font-size:11px;"></div>
+</div>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="logo">Locked In<span>6 — WEEK CHALLENGE</span></div>
+    <div class="pot-display">
+      <div class="pot-label">&#127942; Prize Pot</div>
+      <div class="pot-amount" id="potDisplay">$100</div>
+    </div>
+    <div class="week-badge">
+      <div class="week-label">Current Week</div>
+      <div class="week-num" id="currentWeekDisplay">1</div>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="progress-section">
+    <div class="progress-header">
+      <span class="progress-title">Challenge Progress</span>
+      <span id="progressPct" style="font-size:13px;color:var(--muted);">Set a start date in Settings</span>
+    </div>
+    <div class="track"><div class="fill" id="progressFill" style="width:2%"></div></div>
+    <div class="week-markers">
+      <span class="week-marker">START</span><span class="week-marker">W2</span><span class="week-marker">W3</span>
+      <span class="week-marker">W4</span><span class="week-marker">W5</span><span class="week-marker">W6</span><span class="week-marker">FINISH</span>
+    </div>
+  </div>
+
+  <p class="section-header">SCOREBOARD</p>
+  <div class="scoreboard">
+    <div class="player-card" id="card0">
+      <div class="player-num">COMPETITOR 01</div>
+      <div class="player-name" id="name0">YOU</div>
+      <div class="score-grid">
+        <div class="score-item"><div class="score-val fire" id="weightPts0">0</div><div class="score-label">Weight Pts</div></div>
+        <div class="score-item"><div class="score-val" id="habitPts0">0</div><div class="score-label">Habit Pts</div></div>
+        <div class="score-item"><div class="score-val gold" id="savagePts0">0</div><div class="score-label">Savage Pts</div></div>
+      </div>
+      <div class="total-score">
+        <span class="total-label">Total Score</span>
+        <span class="total-val" id="totalScore0">0</span>
+      </div>
+    </div>
+    <div class="vs-divider">
+      <span class="vs-text">VS</span>
+      <span class="gap-display">Point Gap<br><span class="gap-num" id="gapDisplay">0</span></span>
+    </div>
+    <div class="player-card" id="card1">
+      <div class="player-num">COMPETITOR 02</div>
+      <div class="player-name" id="name1">JACOB</div>
+      <div class="score-grid">
+        <div class="score-item"><div class="score-val fire" id="weightPts1">0</div><div class="score-label">Weight Pts</div></div>
+        <div class="score-item"><div class="score-val" id="habitPts1">0</div><div class="score-label">Habit Pts</div></div>
+        <div class="score-item"><div class="score-val gold" id="savagePts1">0</div><div class="score-label">Savage Pts</div></div>
+      </div>
+      <div class="total-score">
+        <span class="total-label">Total Score</span>
+        <span class="total-val" id="totalScore1">0</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('log',this)">&#128203; Log Day</button>
+    <button class="tab" onclick="switchTab('weigh',this)">&#9878;&#65039; Weigh-In</button>
+    <button class="tab" onclick="switchTab('savage',this)">&#128128; Savage</button>
+    <button class="tab" onclick="switchTab('history',this)">&#128202; History</button>
+    <button class="tab" onclick="switchTab('penalties',this)">&#9760;&#65039; Penalties</button>
+    <button class="tab" onclick="switchTab('settings',this)">&#9881;&#65039; Settings</button>
+  </div>
+
+  <!-- LOG -->
+  <div class="panel active" id="panel-log">
+    <div class="log-grid">
+      <div class="log-card">
+        <h3 id="logTitle0">YOU'S DAY</h3>
+        <div class="date-row"><label>Date</label><input type="date" id="logDate0"></div>
+        <div id="habits0"></div>
+        <button class="save-btn" id="saveBtn0" onclick="saveDay(0)">LOCK IT IN</button>
+      </div>
+      <div class="log-card">
+        <h3 id="logTitle1">JACOB'S DAY</h3>
+        <div class="date-row"><label>Date</label><input type="date" id="logDate1"></div>
+        <div id="habits1"></div>
+        <button class="save-btn" id="saveBtn1" onclick="saveDay(1)">LOCK IT IN</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- WEIGH-IN -->
+  <div class="panel" id="panel-weigh">
+    <div class="weigh-grid">
+      <div class="weigh-card">
+        <h3 id="weighTitle0">YOU'S WEIGH-IN</h3>
+        <div class="input-group"><label>Starting Weight (lbs)</label><input type="number" id="startWeight0" placeholder="000.0" step="0.1" class="weight-val-big"></div>
+        <div class="input-group"><label>Current Weight (lbs)</label><input type="number" id="curWeight0" placeholder="000.0" step="0.1" class="weight-val-big"></div>
+        <div class="input-group"><label>Week</label><select id="weighWeek0"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></div>
+        <button class="save-btn" onclick="saveWeigh(0)">SAVE WEIGH-IN</button>
+        <div style="margin-top:16px;"><div style="font-size:11px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">Weekly Weight</div><div class="chart-bars" id="weightChart0"><span style="color:var(--muted);font-size:12px;">No weigh-ins yet</span></div></div>
+      </div>
+      <div class="weigh-card">
+        <h3 id="weighTitle1">JACOB'S WEIGH-IN</h3>
+        <div class="input-group"><label>Starting Weight (lbs)</label><input type="number" id="startWeight1" placeholder="000.0" step="0.1" class="weight-val-big"></div>
+        <div class="input-group"><label>Current Weight (lbs)</label><input type="number" id="curWeight1" placeholder="000.0" step="0.1" class="weight-val-big"></div>
+        <div class="input-group"><label>Week</label><select id="weighWeek1"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></div>
+        <button class="save-btn" onclick="saveWeigh(1)">SAVE WEIGH-IN</button>
+        <div style="margin-top:16px;"><div style="font-size:11px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">Weekly Weight</div><div class="chart-bars" id="weightChart1"><span style="color:var(--muted);font-size:12px;">No weigh-ins yet</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SAVAGE -->
+  <div class="panel" id="panel-savage">
+    <p class="section-header">WEEKLY SAVAGE CHALLENGES — 10 pts to winner</p>
+    <div class="challenges-grid" id="challengesGrid"></div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="panel" id="panel-history">
+    <div style="background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:24px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <p class="section-header" style="margin:0">DAILY LOG HISTORY</p>
+        <select class="select-input" style="width:auto;" onchange="renderHistory(this.value)">
+          <option value="all">All Players</option>
+          <option value="0" id="histOpt0">YOU</option>
+          <option value="1" id="histOpt1">JACOB</option>
+        </select>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="history-table">
+          <thead><tr><th>Date</th><th>Player</th><th>Workout</th><th>Steps</th><th>Protein</th><th>Clean Diet</th><th>Water</th><th>Pts</th></tr></thead>
+          <tbody id="historyBody"><tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px;">No days logged yet</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- PENALTIES -->
+  <div class="panel" id="panel-penalties">
+    <div class="penalty-card">
+      <h3>&#9760;&#65039; LOG PENALTY</h3>
+      <div class="penalty-row">
+        <div class="input-group" style="margin:0;">
+          <label>Player</label>
+          <select class="select-input" id="penPlayer"><option value="0" id="penOpt0">YOU</option><option value="1" id="penOpt1">JACOB</option></select>
+        </div>
+        <div class="input-group" style="margin:0;">
+          <label>Penalty Type</label>
+          <select class="select-input" id="penType">
+            <option value="missed_workout">Missed Workout (-$5 pot)</option>
+            <option value="missed_weigh">Missed Weigh-In (-5 pts)</option>
+            <option value="alcohol">Alcohol (50 burpees)</option>
+          </select>
+        </div>
+        <button class="red-btn" onclick="addPenalty()">LODGE IT</button>
+      </div>
+      <div id="penaltyList"><p style="color:var(--muted);font-size:13px;margin-top:8px;">No penalties logged. Stay clean. &#128293;</p></div>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="panel" id="panel-settings">
+    <div class="settings-grid">
+      <div class="settings-card">
+        <h3>COMPETITORS</h3>
+        <div class="input-group"><label>Your Name</label><input type="text" id="setName0" class="text-input" placeholder="Your name"></div>
+        <div class="input-group"><label>Opponent Name</label><input type="text" id="setName1" class="text-input" placeholder="Jacob"></div>
+      </div>
+      <div class="settings-card">
+        <h3>CHALLENGE</h3>
+        <div class="input-group"><label>Start Date</label><input type="date" id="setStartDate" class="text-input"></div>
+        <div class="input-group"><label>End Date</label><input type="date" id="setEndDate" class="text-input"></div>
+        <div class="input-group"><label>Buy-In Per Person ($)</label><input type="number" id="setBuyIn" class="text-input" placeholder="50"></div>
+      </div>
+      <div class="settings-card">
+        <h3>SAVAGE CHALLENGES</h3>
+        <div id="savageInputs"></div>
+      </div>
+      <div class="settings-card">
+        <h3>DANGER ZONE</h3>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Wipe all shared data permanently.</p>
+        <button class="red-btn" onclick="resetAll()" style="width:100%;padding:14px;font-size:16px;">RESET EVERYTHING</button>
+      </div>
+    </div>
+    <br>
+    <button class="save-btn" onclick="saveSettings()">SAVE &amp; SYNC SETTINGS</button>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+
+<script>
+// ============================================================
+// FIREBASE CONFIG — Replace with your own Firebase project config
+// ============================================================
+const firebaseConfig = {
+  apiKey: "AIzaSyA_JOAA_Kzq7m_q4Eg7MLPzkKuezLgFAa4",
+  authDomain: "locked-in-challenge.firebaseapp.com",
+  databaseURL: "https://locked-in-challenge-default-rtdb.firebaseio.com",
+  projectId: "locked-in-challenge",
+  storageBucket: "locked-in-challenge.firebasestorage.app",
+  messagingSenderId: "1051380290255",
+  appId: "1:1051380290255:web:2792f0fec6bfa19b505dba"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const DATA_REF = db.ref('locked-in-state');
+
+// ============================================================
+// STATE
+// ============================================================
+let state = null;
+let isSaving = false;
+
+const defaultState = {
+  names: ['MICHAEL', 'JACOB'],
+  startDate: null,
+  endDate: null,
+  buyIn: 50,
+  savageChallenges: [
+    '100 Burpees for Time','1-Mile Run Time Trial','5K Row',
+    '500 Push-Ups in 24hr','24-Hour No Carb Day','75-Min Outdoor Ruck'
+  ],
+  days: [],
+  weighIns: [],
+  savageResults: [null,null,null,null,null,null],
+  penalties: [],
+  extraPot: 0,
+  lastUpdated: null
+};
+
+// ============================================================
+// FIREBASE STORAGE HELPERS
+// ============================================================
+async function loadFromCloud() {
+  setSyncStatus('loading');
+  try {
+    const snapshot = await DATA_REF.once('value');
+    const val = snapshot.val();
+    state = val ? val : JSON.parse(JSON.stringify(defaultState));
+    // Ensure arrays exist (Firebase drops empty arrays)
+    if (!state.days) state.days = [];
+    if (!state.weighIns) state.weighIns = [];
+    if (!state.penalties) state.penalties = [];
+    if (!state.savageResults) state.savageResults = [null,null,null,null,null,null];
+    if (!state.savageChallenges) state.savageChallenges = defaultState.savageChallenges.slice();
+    setSyncStatus('ok');
+    setLastSync();
+  } catch(e) {
+    state = JSON.parse(JSON.stringify(defaultState));
+    setSyncStatus('error');
+    toast('Failed to load data — using defaults');
+  }
+}
+
+async function saveToCloud() {
+  if(isSaving) return;
+  isSaving = true;
+  setSyncStatus('loading');
+  try {
+    state.lastUpdated = new Date().toISOString();
+    await DATA_REF.set(state);
+    setSyncStatus('ok');
+    setLastSync();
+  } catch(e) {
+    setSyncStatus('error');
+    toast('Sync failed — check connection');
+  }
+  isSaving = false;
+}
+
+function listenForUpdates() {
+  DATA_REF.on('value', (snapshot) => {
+    if(isSaving) return;
+    const remote = snapshot.val();
+    if(!remote) return;
+    if(!state.lastUpdated || (remote.lastUpdated && remote.lastUpdated > state.lastUpdated)) {
+      state = remote;
+      if (!state.days) state.days = [];
+      if (!state.weighIns) state.weighIns = [];
+      if (!state.penalties) state.penalties = [];
+      if (!state.savageResults) state.savageResults = [null,null,null,null,null,null];
+      if (!state.savageChallenges) state.savageChallenges = defaultState.savageChallenges.slice();
+      renderAll();
+      renderHistory();
+      setLastSync();
+    }
+  });
+}
+
+function setSyncStatus(status) {
+  const dot = document.getElementById('syncDot');
+  const txt = document.getElementById('syncStatus');
+  dot.className = 'sync-dot';
+  if(status === 'loading') { dot.classList.add('loading'); txt.textContent = 'SYNCING...'; }
+  else if(status === 'error') { dot.classList.add('error'); txt.textContent = 'SYNC ERROR'; }
+  else { txt.textContent = 'LIVE SYNC ON'; }
+}
+
+function setLastSync() {
+  const el = document.getElementById('lastSync');
+  const now = new Date();
+  el.textContent = `Last sync: ${now.toLocaleTimeString()}`;
+}
+
+// ============================================================
+// HABITS
+// ============================================================
+const HABITS = [
+  { key:'workout', icon:'&#127947;&#65039;', label:'Workout (30+ min)', pts:2 },
+  { key:'steps',   icon:'&#128095;', label:'10,000 Steps',      pts:1 },
+  { key:'protein', icon:'&#129385;', label:'Hit Protein Goal',  pts:1 },
+  { key:'clean',   icon:'&#128683;', label:'No Junk / No Alcohol', pts:1 },
+  { key:'water',   icon:'&#128167;', label:'1 Gallon Water',    pts:1 },
+];
+
+// ============================================================
+// SCORING
+// ============================================================
+function calcHabitPts(p) {
+  let pts = 0;
+  state.days.filter(d=>d.player===p).forEach(d => {
+    let dp = 0;
+    HABITS.forEach(h => { if(d.habits[h.key]) dp += h.pts; });
+    pts += Math.min(dp, 6);
+  });
+  const end = state.endDate ? new Date(state.endDate) : null;
+  const start = state.startDate ? new Date(state.startDate) : null;
+  const totalDays = (start && end) ? Math.max(1, Math.round((end-start)/86400000)) : 42;
+  return Math.min(pts, totalDays * 5);
+}
+
+function calcWeightPts(p) {
+  const wi = state.weighIns.filter(w=>w.player===p);
+  if(!wi.length) return 0;
+  const startEntry = wi.find(w=>w.start);
+  if(!startEntry) return 0;
+  const start = parseFloat(startEntry.start);
+  const weights = wi.map(w=>parseFloat(w.current)).filter(Boolean);
+  if(!weights.length) return 0;
+  const lowest = Math.min(...weights);
+  const lbsLost = start - lowest;
+  const pctLost = (lbsLost/start)*100;
+  return Math.min(Math.max(0, Math.max(lbsLost, pctLost*2)), 50);
+}
+
+function calcSavagePts(p) {
+  let pts = 0;
+  state.savageResults.forEach(r => {
+    if(r===p) pts+=10;
+    else if(r===2) pts+=5;
+  });
+  return pts;
+}
+
+function calcPenaltyPts(p) {
+  return state.penalties.filter(x=>x.player===p && x.type==='missed_weigh').length * 5;
+}
+
+function calcTotal(p) {
+  return Math.round(calcWeightPts(p)) + calcHabitPts(p) + calcSavagePts(p) - calcPenaltyPts(p);
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function renderAll() {
+  renderNames();
+  renderScoreboard();
+  renderProgress();
+  renderWeightCharts();
+  renderSavageChallenges();
+  renderPenalties();
+}
+
+function renderNames() {
+  const n = state.names;
+  for(let p=0;p<2;p++) {
+    const name = n[p] || ['MICHAEL','JACOB'][p];
+    document.getElementById(`name${p}`).textContent = name;
+    document.getElementById(`logTitle${p}`).textContent = name + "'S DAY";
+    document.getElementById(`weighTitle${p}`).textContent = name + "'S WEIGH-IN";
+    const ho = document.getElementById(`histOpt${p}`); if(ho) ho.textContent = name;
+    const po = document.getElementById(`penOpt${p}`); if(po) po.textContent = name;
+  }
+}
+
+function renderScoreboard() {
+  const scores = [0,1].map(p => ({
+    weight: Math.round(calcWeightPts(p)),
+    habit: calcHabitPts(p),
+    savage: calcSavagePts(p),
+    total: calcTotal(p)
+  }));
+  for(let p=0;p<2;p++) {
+    document.getElementById(`weightPts${p}`).textContent = scores[p].weight;
+    document.getElementById(`habitPts${p}`).textContent = scores[p].habit;
+    document.getElementById(`savagePts${p}`).textContent = scores[p].savage;
+    document.getElementById(`totalScore${p}`).textContent = scores[p].total;
+    document.getElementById(`card${p}`).classList.remove('leader');
+  }
+  if(scores[0].total > scores[1].total) document.getElementById('card0').classList.add('leader');
+  else if(scores[1].total > scores[0].total) document.getElementById('card1').classList.add('leader');
+  document.getElementById('gapDisplay').textContent = Math.abs(scores[0].total - scores[1].total);
+  const pot = (state.buyIn||50)*2 + (state.extraPot||0);
+  document.getElementById('potDisplay').textContent = `$${pot}`;
+}
+
+function renderProgress() {
+  if(!state.startDate) {
+    document.getElementById('progressFill').style.width = '2%';
+    document.getElementById('progressPct').textContent = 'Set a start date in Settings';
+    document.getElementById('currentWeekDisplay').textContent = '1';
+    return;
+  }
+  const start = new Date(state.startDate);
+  const now = new Date();
+  const end = state.endDate ? new Date(state.endDate) : null;
+  const totalDays = end ? Math.max(1, Math.round((end-start)/86400000)) : 42;
+  const totalWeeks = Math.max(1, Math.ceil(totalDays/7));
+  const diff = Math.max(0, Math.min(totalDays, Math.floor((now-start)/86400000)));
+  const pct = Math.max(2, Math.round((diff/totalDays)*100));
+  document.getElementById('progressFill').style.width = pct+'%';
+  document.getElementById('progressPct').textContent = `Day ${diff+1} of ${totalDays}`;
+  document.getElementById('currentWeekDisplay').textContent = Math.min(totalWeeks, Math.floor(diff/7)+1);
+}
+
+function renderWeightCharts() {
+  for(let p=0;p<2;p++) {
+    const c = document.getElementById(`weightChart${p}`);
+    const wi = state.weighIns.filter(w=>w.player===p).sort((a,b)=>a.week-b.week);
+    c.innerHTML = '';
+    if(!wi.length) { c.innerHTML='<span style="color:var(--muted);font-size:12px;">No weigh-ins yet</span>'; continue; }
+    const wts = wi.map(w=>parseFloat(w.current)||0);
+    const max=Math.max(...wts,1), min=Math.min(...wts), range=max-min||1;
+    wi.forEach(w=>{
+      const wrap=document.createElement('div'); wrap.className='chart-bar-wrap';
+      const h=Math.max(10,Math.round(((parseFloat(w.current)-min)/range)*70)+10);
+      wrap.innerHTML=`<div class="chart-bar" style="height:${h}px"></div><div class="chart-bar-label">W${w.week}</div>`;
+      c.appendChild(wrap);
+    });
+  }
+}
+
+function renderSavageChallenges() {
+  const grid = document.getElementById('challengesGrid');
+  grid.innerHTML = '';
+  const currentWeek = parseInt(document.getElementById('currentWeekDisplay').textContent)||1;
+  state.savageChallenges.forEach((ch,i) => {
+    const result = state.savageResults[i];
+    const unlocked = (i+1) <= currentWeek;
+    const card = document.createElement('div');
+    card.className = `challenge-card${unlocked?' unlocked':''}`;
+    let btns = '';
+    [[0,'p0'],[1,'p1'],[2,'tie']].forEach(([val,cls])=>{
+      const label = val===0?(state.names[0]||'You'):val===1?(state.names[1]||'Jacob'):'Tie';
+      const sel = result===val;
+      btns+=`<button class="winner-btn${cls==='tie'?' tie':''}${sel?' selected':''}" onclick="setSavageWinner(${i},${val})">${label}</button>`;
+    });
+    card.innerHTML=`
+      <div class="challenge-week">WEEK ${i+1}</div>
+      <div class="challenge-name">${ch}</div>
+      <div class="challenge-pts">&#127942; 10 points</div>
+      <div class="challenge-winner">${btns}</div>
+      ${!unlocked?'<div class="challenge-locked">&#128274; NOT YET</div>':''}
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function renderPenalties() {
+  const list = document.getElementById('penaltyList');
+  const labels = {missed_workout:'Missed Workout (-$5 pot)',missed_weigh:'Missed Weigh-In (-5 pts)',alcohol:'Alcohol (50 burpees)'};
+  if(!state.penalties.length) { list.innerHTML='<p style="color:var(--muted);font-size:13px;margin-top:8px;">No penalties logged. Stay clean. &#128293;</p>'; return; }
+  list.innerHTML = state.penalties.slice().reverse().map(p=>`
+    <div class="penalty-item">
+      <span><strong>${state.names[p.player]||['Michael','Jacob'][p.player]}</strong> — ${labels[p.type]||p.type}</span>
+      <span style="display:flex;gap:16px;align-items:center;">
+        <span style="color:var(--muted);font-size:12px;">${p.date}</span>
+        <span class="p-neg">${p.type==='missed_weigh'?'-5 pts':p.type==='missed_workout'?'-$5':'&#9888;&#65039;'}</span>
+      </span>
+    </div>`).join('');
+}
+
+function renderHistory(filter='all') {
+  const tbody = document.getElementById('historyBody');
+  let days = [...state.days].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  if(filter!=='all') days = days.filter(d=>d.player===parseInt(filter));
+  if(!days.length) { tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px;">No days logged yet</td></tr>'; return; }
+  tbody.innerHTML = days.map(d=>{
+    const pts = Math.min(HABITS.reduce((s,h)=>s+(d.habits[h.key]?h.pts:0),0),6);
+    return `<tr>
+      <td>${d.date}</td>
+      <td style="font-weight:600">${state.names[d.player]||['Michael','Jacob'][d.player]}</td>
+      ${HABITS.map(h=>`<td><span class="dot ${d.habits[h.key]?'on':'off'}"></span>${d.habits[h.key]?'&#10003;':'-'}</td>`).join('')}
+      <td style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--fire);">${pts}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ============================================================
+// HABIT TOGGLES
+// ============================================================
+function renderHabits(p) {
+  const c = document.getElementById(`habits${p}`);
+  c.innerHTML = HABITS.map(h=>`
+    <div class="habit-row">
+      <div class="habit-info">
+        <span class="habit-icon">${h.icon}</span>
+        <div><div class="habit-name">${h.label}</div><div class="habit-pts">+${h.pts} pt${h.pts>1?'s':''}</div></div>
+      </div>
+      <button class="toggle" id="tog_${p}_${h.key}" onclick="this.classList.toggle('on')"></button>
+    </div>`).join('');
+}
+
+// ============================================================
+// LOAD SAVED TOGGLES FOR A DATE
+// ============================================================
+function loadTogglesForDate(p) {
+  const date = document.getElementById(`logDate${p}`).value;
+  const saved = state && state.days.find(d => d.player === p && d.date === date);
+  HABITS.forEach(h => {
+    const tog = document.getElementById(`tog_${p}_${h.key}`);
+    if (saved && saved.habits[h.key]) tog.classList.add('on');
+    else tog.classList.remove('on');
+  });
+}
+
+// ============================================================
+// ACTIONS
+// ============================================================
+async function saveDay(p) {
+  const date = document.getElementById(`logDate${p}`).value;
+  if(!date) { toast('Pick a date first!'); return; }
+  const habits = {};
+  HABITS.forEach(h=>{ habits[h.key] = document.getElementById(`tog_${p}_${h.key}`).classList.contains('on'); });
+  const btn = document.getElementById(`saveBtn${p}`);
+  btn.disabled = true; btn.textContent = 'SAVING...';
+  state.days = state.days.filter(d=>!(d.player===p&&d.date===date));
+  state.days.push({player:p, date, habits});
+  await saveToCloud();
+  renderAll();
+  renderHistory();
+  const pts = Math.min(HABITS.reduce((s,h)=>s+(habits[h.key]?h.pts:0),0),6);
+  toast(`${state.names[p]||['Michael','Jacob'][p]} logged ${pts} pts for ${date} &#128293;`);
+  loadTogglesForDate(p);
+  btn.disabled = false; btn.textContent = 'LOCK IT IN';
+}
+
+async function saveWeigh(p) {
+  const sw = document.getElementById(`startWeight${p}`).value;
+  const cw = document.getElementById(`curWeight${p}`).value;
+  const wk = parseInt(document.getElementById(`weighWeek${p}`).value);
+  if(!sw||!cw) { toast('Enter both weights!'); return; }
+  state.weighIns = state.weighIns.filter(w=>!(w.player===p&&w.week===wk));
+  state.weighIns.push({player:p, week:wk, start:parseFloat(sw), current:parseFloat(cw)});
+  await saveToCloud();
+  renderAll();
+  const lost = (parseFloat(sw)-parseFloat(cw)).toFixed(1);
+  toast(`Week ${wk} weigh-in saved. ${lost>0?lost+'lbs lost &#128170;':'Keep pushing!'}`);
+}
+
+async function setSavageWinner(weekIdx, val) {
+  state.savageResults[weekIdx] = val;
+  await saveToCloud();
+  renderAll();
+  toast('Savage challenge updated &#128170;');
+}
+
+async function addPenalty() {
+  const p = parseInt(document.getElementById('penPlayer').value);
+  const type = document.getElementById('penType').value;
+  const date = new Date().toISOString().split('T')[0];
+  state.penalties.push({player:p, type, date});
+  if(type==='missed_workout') state.extraPot = (state.extraPot||0)+5;
+  await saveToCloud();
+  renderAll();
+  toast(`Penalty logged for ${state.names[p]||['Michael','Jacob'][p]} &#9760;&#65039;`);
+}
+
+async function saveSettings() {
+  const n0 = document.getElementById('setName0').value.trim();
+  const n1 = document.getElementById('setName1').value.trim();
+  state.names[0] = n0||state.names[0];
+  state.names[1] = n1||state.names[1];
+  state.startDate = document.getElementById('setStartDate').value||state.startDate;
+  state.endDate = document.getElementById('setEndDate').value||state.endDate;
+  state.buyIn = parseFloat(document.getElementById('setBuyIn').value)||state.buyIn;
+  for(let i=0;i<6;i++) {
+    const inp=document.getElementById(`savage_${i}`);
+    if(inp&&inp.value.trim()) state.savageChallenges[i]=inp.value.trim();
+  }
+  await saveToCloud();
+  renderAll();
+  toast('Settings saved & synced &#128293;');
+}
+
+async function resetAll() {
+  if(!confirm('RESET ALL SHARED DATA? This cannot be undone and affects both players!')) return;
+  state = JSON.parse(JSON.stringify(defaultState));
+  await saveToCloud();
+  populateSettings();
+  renderAll();
+  renderHistory();
+  toast('Reset complete. Start from zero. &#128128;');
+}
+
+// ============================================================
+// SETTINGS PANEL
+// ============================================================
+function populateSettings() {
+  document.getElementById('setName0').value = state.names[0]==='MICHAEL'?'':state.names[0];
+  document.getElementById('setName1').value = state.names[1]==='JACOB'?'':state.names[1];
+  document.getElementById('setStartDate').value = state.startDate||'';
+  document.getElementById('setEndDate').value = state.endDate||'';
+  document.getElementById('setBuyIn').value = state.buyIn||50;
+  const si = document.getElementById('savageInputs');
+  si.innerHTML = state.savageChallenges.map((ch,i)=>`
+    <div class="input-group">
+      <label>Week ${i+1}</label>
+      <input type="text" id="savage_${i}" value="${ch}" class="text-input" style="font-size:13px;padding:8px 12px;">
+    </div>`).join('');
+}
+
+// ============================================================
+// TABS
+// ============================================================
+function switchTab(id, el) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById(`panel-${id}`).classList.add('active');
+  if(id==='log') {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('logDate0').value = today;
+    document.getElementById('logDate1').value = today;
+    loadTogglesForDate(0);
+    loadTogglesForDate(1);
+  }
+  if(id==='history') renderHistory();
+  if(id==='settings') populateSettings();
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+function toast(msg) {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.innerHTML = msg;
+  c.appendChild(t);
+  setTimeout(()=>t.remove(), 3100);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+async function init() {
+  document.getElementById('loadingOverlay').classList.remove('hidden');
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('logDate0').value = today;
+  document.getElementById('logDate1').value = today;
+  renderHabits(0);
+  renderHabits(1);
+
+  await loadFromCloud();
+
+  document.getElementById('loadingOverlay').classList.add('hidden');
+  populateSettings();
+  renderAll();
+  renderHistory();
+
+  // Load saved toggle states for today
+  loadTogglesForDate(0);
+  loadTogglesForDate(1);
+
+  // Reload toggles when date is changed
+  document.getElementById('logDate0').addEventListener('change', () => loadTogglesForDate(0));
+  document.getElementById('logDate1').addEventListener('change', () => loadTogglesForDate(1));
+
+  // Real-time listener — instant sync when the other player makes changes
+  listenForUpdates();
+}
+
+init();
+</script>
+
+</body></html>
