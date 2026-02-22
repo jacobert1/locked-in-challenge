@@ -186,9 +186,11 @@
   .toggle::after { content: ''; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; background: var(--muted); border-radius: 50%; transition: all 0.2s; }
   .toggle.on { background: var(--green); }
   .toggle.on::after { left: 23px; background: white; }
-  .date-row { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+  .date-row { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; }
   .date-row label { font-size: 12px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
   .date-row input { background: var(--border); border: 1px solid #333; border-radius: 6px; padding: 6px 12px; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 14px; }
+  .date-nav-btn { background: none; border: 1px solid var(--border); border-radius: 5px; color: var(--muted); font-size: 14px; padding: 4px 8px; cursor: pointer; line-height: 1; transition: color 0.15s, border-color 0.15s; }
+  .date-nav-btn:hover { color: var(--fire); border-color: var(--fire); }
   .save-btn { width: 100%; margin-top: 16px; padding: 14px; background: linear-gradient(135deg, var(--fire), var(--ember)); border: none; border-radius: 8px; color: white; font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 3px; cursor: pointer; transition: transform 0.1s, box-shadow 0.2s; }
   .save-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(255,69,0,0.4); }
   .save-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
@@ -363,13 +365,13 @@
     <div class="log-grid">
       <div class="log-card">
         <h3 id="logTitle0">YOU'S DAY</h3>
-        <div class="date-row"><label>Date</label><input type="date" id="logDate0"></div>
+        <div class="date-row"><label>Date</label><button class="date-nav-btn" onclick="shiftDate(0,-1)">&#9664;</button><input type="date" id="logDate0"><button class="date-nav-btn" onclick="shiftDate(0,1)">&#9654;</button></div>
         <div id="habits0"></div>
         <button class="save-btn" id="saveBtn0" onclick="saveDay(0)">LOCK IT IN</button>
       </div>
       <div class="log-card">
         <h3 id="logTitle1">JACOB'S DAY</h3>
-        <div class="date-row"><label>Date</label><input type="date" id="logDate1"></div>
+        <div class="date-row"><label>Date</label><button class="date-nav-btn" onclick="shiftDate(1,-1)">&#9664;</button><input type="date" id="logDate1"><button class="date-nav-btn" onclick="shiftDate(1,1)">&#9654;</button></div>
         <div id="habits1"></div>
         <button class="save-btn" id="saveBtn1" onclick="saveDay(1)">LOCK IT IN</button>
       </div>
@@ -707,10 +709,16 @@ function renderProgress() {
     document.getElementById('currentWeekDisplay').textContent = '1';
     return;
   }
-  const start = new Date(state.startDate);
+  const sp = state.startDate.split('-');
+  const start = new Date(sp[0], sp[1]-1, sp[2]);
   const now = new Date();
-  const end = state.endDate ? new Date(state.endDate) : null;
-  const totalDays = end ? Math.max(1, Math.round((end-start)/86400000)) : 42;
+  now.setHours(0,0,0,0);
+  let end = null, totalDays = 42;
+  if (state.endDate) {
+    const ep = state.endDate.split('-');
+    end = new Date(ep[0], ep[1]-1, ep[2]);
+    totalDays = Math.max(1, Math.round((end-start)/86400000));
+  }
   const totalWeeks = Math.max(1, Math.ceil(totalDays/7));
   const diff = Math.max(0, Math.min(totalDays, Math.floor((now-start)/86400000)));
   const pct = Math.max(2, Math.round((diff/totalDays)*100));
@@ -925,14 +933,58 @@ function switchTab(id, el) {
   el.classList.add('active');
   document.getElementById(`panel-${id}`).classList.add('active');
   if(id==='log') {
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('logDate0').value = today;
-    document.getElementById('logDate1').value = today;
-    loadTogglesForDate(0);
-    loadTogglesForDate(1);
+    setDefaultLogDates();
   }
   if(id==='history') renderHistory();
   if(id==='settings') populateSettings();
+}
+
+// ============================================================
+// LOCAL DATE HELPER (avoids UTC offset issues)
+// ============================================================
+function getLocalToday() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+}
+
+// ============================================================
+// DATE NAV ARROWS
+// ============================================================
+function shiftDate(p, dir) {
+  const input = document.getElementById(`logDate${p}`);
+  if (!input.value) return;
+  const parts = input.value.split('-');
+  const d = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
+  d.setDate(d.getDate() + dir);
+  input.value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  loadTogglesForDate(p);
+}
+
+// ============================================================
+// DEFAULT DATE: earliest unlogged date per player
+// ============================================================
+function getDefaultLogDate(p) {
+  if (!state || !state.startDate) return getLocalToday();
+  const sp = state.startDate.split('-');
+  const start = new Date(parseInt(sp[0]), parseInt(sp[1])-1, parseInt(sp[2]));
+  const todayStr = getLocalToday();
+  const tp = todayStr.split('-');
+  const today = new Date(parseInt(tp[0]), parseInt(tp[1])-1, parseInt(tp[2]));
+  const loggedDates = new Set(state.days.filter(d => d.player === p).map(d => d.date));
+  const cur = new Date(start);
+  while (cur <= today) {
+    const s = `${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,'0')}-${String(cur.getDate()).padStart(2,'0')}`;
+    if (!loggedDates.has(s)) return s;
+    cur.setDate(cur.getDate() + 1);
+  }
+  return todayStr;
+}
+
+function setDefaultLogDates() {
+  for (let p = 0; p < 2; p++) {
+    document.getElementById(`logDate${p}`).value = getDefaultLogDate(p);
+    loadTogglesForDate(p);
+  }
 }
 
 // ============================================================
@@ -952,9 +1004,6 @@ function toast(msg) {
 // ============================================================
 async function init() {
   document.getElementById('loadingOverlay').classList.remove('hidden');
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('logDate0').value = today;
-  document.getElementById('logDate1').value = today;
   renderHabits(0);
   renderHabits(1);
 
@@ -965,9 +1014,8 @@ async function init() {
   renderAll();
   renderHistory();
 
-  // Load saved toggle states for today
-  loadTogglesForDate(0);
-  loadTogglesForDate(1);
+  // Default each player's date to their earliest unlogged day
+  setDefaultLogDates();
 
   // Reload toggles when date is changed
   document.getElementById('logDate0').addEventListener('change', () => loadTogglesForDate(0));
