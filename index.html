@@ -1043,6 +1043,9 @@ async function init() {
   // Default each player's date to their earliest unlogged day
   setDefaultLogDates();
 
+  // Populate weigh-in fields for the currently selected week
+  for(let p=0;p<2;p++) loadWeighInForWeek(p, document.getElementById(`weighWeek${p}`).value);
+
   // Reload toggles when date is changed
   document.getElementById('logDate0').addEventListener('change', () => loadTogglesForDate(0));
   document.getElementById('logDate1').addEventListener('change', () => loadTogglesForDate(1));
