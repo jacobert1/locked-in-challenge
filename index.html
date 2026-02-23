@@ -385,7 +385,7 @@
         <h3 id="weighTitle0">YOU'S WEIGH-IN</h3>
         <div class="input-group"><label>Starting Weight (lbs)</label><input type="number" id="startWeight0" placeholder="000.0" step="0.1" class="weight-val-big"></div>
         <div class="input-group"><label>Current Weight (lbs)</label><input type="number" id="curWeight0" placeholder="000.0" step="0.1" class="weight-val-big"></div>
-        <div class="input-group"><label>Week</label><select id="weighWeek0"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></div>
+        <div class="input-group"><label>Week</label><select id="weighWeek0" onchange="loadWeighInForWeek(0, this.value)"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></div>
         <button class="save-btn" onclick="saveWeigh(0)">SAVE WEIGH-IN</button>
         <div style="margin-top:16px;"><div style="font-size:11px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">Weekly Weight</div><div class="chart-bars" id="weightChart0"><span style="color:var(--muted);font-size:12px;">No weigh-ins yet</span></div></div>
       </div>
@@ -393,7 +393,7 @@
         <h3 id="weighTitle1">JACOB'S WEIGH-IN</h3>
         <div class="input-group"><label>Starting Weight (lbs)</label><input type="number" id="startWeight1" placeholder="000.0" step="0.1" class="weight-val-big"></div>
         <div class="input-group"><label>Current Weight (lbs)</label><input type="number" id="curWeight1" placeholder="000.0" step="0.1" class="weight-val-big"></div>
-        <div class="input-group"><label>Week</label><select id="weighWeek1"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></div>
+        <div class="input-group"><label>Week</label><select id="weighWeek1" onchange="loadWeighInForWeek(1, this.value)"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></div>
         <button class="save-btn" onclick="saveWeigh(1)">SAVE WEIGH-IN</button>
         <div style="margin-top:16px;"><div style="font-size:11px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">Weekly Weight</div><div class="chart-bars" id="weightChart1"><span style="color:var(--muted);font-size:12px;">No weigh-ins yet</span></div></div>
       </div>
@@ -829,6 +829,28 @@ function loadTogglesForDate(p) {
 }
 
 // ============================================================
+// WEIGH-IN WEEK LOADER
+// ============================================================
+function loadWeighInForWeek(p, week) {
+  week = parseInt(week);
+  const existing = state && state.weighIns.find(w => w.player === p && w.week === week);
+  const startEl = document.getElementById(`startWeight${p}`);
+  const curEl = document.getElementById(`curWeight${p}`);
+  if (existing) {
+    startEl.value = existing.start || '';
+    curEl.value = existing.current || '';
+  } else {
+    curEl.value = '';
+    if (week > 1) {
+      const prior = state && state.weighIns.find(w => w.player === p && w.week === week - 1);
+      startEl.value = prior ? (prior.current || '') : '';
+    } else {
+      startEl.value = '';
+    }
+  }
+}
+
+// ============================================================
 // ACTIONS
 // ============================================================
 async function saveDay(p) {
@@ -858,6 +880,7 @@ async function saveWeigh(p) {
   state.weighIns.push({player:p, week:wk, start:parseFloat(sw), current:parseFloat(cw)});
   await saveToCloud();
   renderAll();
+  loadWeighInForWeek(p, wk);
   const lost = (parseFloat(sw)-parseFloat(cw)).toFixed(1);
   toast(`Week ${wk} weigh-in saved. ${lost>0?lost+'lbs lost &#128170;':'Keep pushing!'}`);
 }
@@ -934,6 +957,9 @@ function switchTab(id, el) {
   document.getElementById(`panel-${id}`).classList.add('active');
   if(id==='log') {
     setDefaultLogDates();
+  }
+  if(id==='weigh') {
+    for(let p=0;p<2;p++) loadWeighInForWeek(p, document.getElementById(`weighWeek${p}`).value);
   }
   if(id==='history') renderHistory();
   if(id==='settings') populateSettings();
