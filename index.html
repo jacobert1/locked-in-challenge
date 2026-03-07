@@ -805,14 +805,33 @@ function renderHistory(filter='all') {
 // ============================================================
 function renderHabits(p) {
   const c = document.getElementById(`habits${p}`);
-  c.innerHTML = HABITS.map(h=>`
+  c.innerHTML = `
+    <div style="display:flex;justify-content:flex-end;margin-bottom:8px;">
+      <button onclick="toggleAllHabits(${p})" id="toggleAllBtn${p}" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:1.5px;padding:4px 12px;cursor:pointer;text-transform:uppercase;transition:color 0.15s,border-color 0.15s;" onmouseover="this.style.color='var(--fire)';this.style.borderColor='var(--fire)'" onmouseout="this.style.color='var(--muted)';this.style.borderColor='var(--border)'">All On</button>
+    </div>` +
+  HABITS.map(h=>`
     <div class="habit-row">
       <div class="habit-info">
         <span class="habit-icon">${h.icon}</span>
         <div><div class="habit-name">${h.label}</div><div class="habit-pts">+${h.pts} pt${h.pts>1?'s':''}</div></div>
       </div>
-      <button class="toggle" id="tog_${p}_${h.key}" onclick="this.classList.toggle('on')"></button>
+      <button class="toggle" id="tog_${p}_${h.key}" onclick="this.classList.toggle('on');updateToggleAllBtn(${p})"></button>
     </div>`).join('');
+}
+
+function toggleAllHabits(p) {
+  const allOn = HABITS.every(h => document.getElementById(`tog_${p}_${h.key}`).classList.contains('on'));
+  HABITS.forEach(h => {
+    const tog = document.getElementById(`tog_${p}_${h.key}`);
+    allOn ? tog.classList.remove('on') : tog.classList.add('on');
+  });
+  updateToggleAllBtn(p);
+}
+
+function updateToggleAllBtn(p) {
+  const allOn = HABITS.every(h => document.getElementById(`tog_${p}_${h.key}`).classList.contains('on'));
+  const btn = document.getElementById(`toggleAllBtn${p}`);
+  if(btn) btn.textContent = allOn ? 'All Off' : 'All On';
 }
 
 // ============================================================
@@ -826,6 +845,7 @@ function loadTogglesForDate(p) {
     if (saved && saved.habits[h.key]) tog.classList.add('on');
     else tog.classList.remove('on');
   });
+  updateToggleAllBtn(p);
 }
 
 // ============================================================
