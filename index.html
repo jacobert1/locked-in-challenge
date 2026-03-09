@@ -661,7 +661,7 @@ function calcPenaltyPts(p) {
 }
 
 function calcTotal(p) {
-  return Math.round(calcWeightPts(p)) + calcHabitPts(p) + calcSavagePts(p) - calcPenaltyPts(p);
+  return calcWeightPts(p) + calcHabitPts(p) + calcSavagePts(p) - calcPenaltyPts(p);
 }
 
 // ============================================================
@@ -705,12 +705,12 @@ function renderScoreboard() {
     document.getElementById(`weightPtsLabel${p}`).textContent = weightLabel;
     document.getElementById(`habitPts${p}`).textContent = scores[p].habit;
     document.getElementById(`savagePts${p}`).textContent = scores[p].savage;
-    document.getElementById(`totalScore${p}`).textContent = scores[p].total;
+    document.getElementById(`totalScore${p}`).textContent = scores[p].total.toFixed(1);
     document.getElementById(`card${p}`).classList.remove('leader');
   }
   if(scores[0].total > scores[1].total) document.getElementById('card0').classList.add('leader');
   else if(scores[1].total > scores[0].total) document.getElementById('card1').classList.add('leader');
-  document.getElementById('gapDisplay').textContent = Math.abs(scores[0].total - scores[1].total);
+  document.getElementById('gapDisplay').textContent = Math.abs(scores[0].total - scores[1].total).toFixed(1);
   const pot = (state.buyIn||50)*2 + (state.extraPot||0);
   document.getElementById('potDisplay').textContent = `$${pot}`;
 }
