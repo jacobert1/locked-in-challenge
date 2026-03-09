@@ -317,13 +317,16 @@
     </div>
   </div>
 
-  <p class="section-header">SCOREBOARD</p>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+    <p class="section-header" style="margin:0;">SCOREBOARD</p>
+    <button onclick="toggleWeightScoring()" id="weightScoringBtn" style="background:rgba(255,69,0,0.08);border:1px solid rgba(255,69,0,0.3);border-radius:6px;color:var(--ember);font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:1.5px;padding:5px 14px;cursor:pointer;text-transform:uppercase;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,69,0,0.18)'" onmouseout="this.style.background='rgba(255,69,0,0.08)'">&#9878;&#65039; Scoring: 1 pt / lb</button>
+  </div>
   <div class="scoreboard">
     <div class="player-card" id="card0">
       <div class="player-num">COMPETITOR 01</div>
       <div class="player-name" id="name0">YOU</div>
       <div class="score-grid">
-        <div class="score-item"><div class="score-val fire" id="weightPts0">0</div><div class="score-label">Weight Pts</div></div>
+        <div class="score-item"><div class="score-val fire" id="weightPts0">0</div><div class="score-label" id="weightPtsLabel0">Weight Pts</div></div>
         <div class="score-item"><div class="score-val" id="habitPts0">0</div><div class="score-label">Habit Pts</div></div>
         <div class="score-item"><div class="score-val gold" id="savagePts0">0</div><div class="score-label">Savage Pts</div></div>
       </div>
@@ -340,7 +343,7 @@
       <div class="player-num">COMPETITOR 02</div>
       <div class="player-name" id="name1">JACOB</div>
       <div class="score-grid">
-        <div class="score-item"><div class="score-val fire" id="weightPts1">0</div><div class="score-label">Weight Pts</div></div>
+        <div class="score-item"><div class="score-val fire" id="weightPts1">0</div><div class="score-label" id="weightPtsLabel1">Weight Pts</div></div>
         <div class="score-item"><div class="score-val" id="habitPts1">0</div><div class="score-label">Habit Pts</div></div>
         <div class="score-item"><div class="score-val gold" id="savagePts1">0</div><div class="score-label">Savage Pts</div></div>
       </div>
@@ -522,6 +525,7 @@ const defaultState = {
   savageResults: [null,null,null,null,null,null],
   penalties: [],
   extraPot: 0,
+  weightScoringMethod: 'lbs',
   lastUpdated: null
 };
 
@@ -540,6 +544,7 @@ async function loadFromCloud() {
     if (!state.penalties) state.penalties = [];
     if (!state.savageResults) state.savageResults = [null,null,null,null,null,null];
     if (!state.savageChallenges) state.savageChallenges = defaultState.savageChallenges.slice();
+    if (!state.weightScoringMethod) state.weightScoringMethod = 'lbs';
     setSyncStatus('ok');
     setLastSync();
   } catch(e) {
@@ -577,6 +582,7 @@ function listenForUpdates() {
       if (!state.penalties) state.penalties = [];
       if (!state.savageResults) state.savageResults = [null,null,null,null,null,null];
       if (!state.savageChallenges) state.savageChallenges = defaultState.savageChallenges.slice();
+      if (!state.weightScoringMethod) state.weightScoringMethod = 'lbs';
       renderAll();
       renderHistory();
       setLastSync();
@@ -637,7 +643,8 @@ function calcWeightPts(p) {
   const lowest = Math.min(...weights);
   const lbsLost = start - lowest;
   const pctLost = (lbsLost/start)*100;
-  return Math.min(Math.max(0, Math.max(lbsLost, pctLost*2)), 50);
+  const pts = (state.weightScoringMethod === 'pct') ? pctLost : lbsLost;
+  return Math.min(Math.max(0, pts), 50);
 }
 
 function calcSavagePts(p) {
@@ -688,8 +695,14 @@ function renderScoreboard() {
     savage: calcSavagePts(p),
     total: calcTotal(p)
   }));
+  const isPct = state.weightScoringMethod === 'pct';
+  const weightLabel = isPct ? 'Weight % Pts' : 'Weight Pts';
+  const btnLabel = isPct ? '⚖️ Scoring: 1 pt / %' : '⚖️ Scoring: 1 pt / lb';
+  const btn = document.getElementById('weightScoringBtn');
+  if(btn) btn.textContent = btnLabel;
   for(let p=0;p<2;p++) {
     document.getElementById(`weightPts${p}`).textContent = scores[p].weight;
+    document.getElementById(`weightPtsLabel${p}`).textContent = weightLabel;
     document.getElementById(`habitPts${p}`).textContent = scores[p].habit;
     document.getElementById(`savagePts${p}`).textContent = scores[p].savage;
     document.getElementById(`totalScore${p}`).textContent = scores[p].total;
@@ -903,6 +916,14 @@ async function saveWeigh(p) {
   loadWeighInForWeek(p, wk);
   const lost = (parseFloat(sw)-parseFloat(cw)).toFixed(1);
   toast(`Week ${wk} weigh-in saved. ${lost>0?lost+'lbs lost &#128170;':'Keep pushing!'}`);
+}
+
+async function toggleWeightScoring() {
+  state.weightScoringMethod = (state.weightScoringMethod === 'pct') ? 'lbs' : 'pct';
+  await saveToCloud();
+  renderAll();
+  const method = state.weightScoringMethod === 'pct' ? '1 pt per % lost' : '1 pt per lb lost';
+  toast(`Weight scoring: ${method}`);
 }
 
 async function setSavageWinner(weekIdx, val) {
