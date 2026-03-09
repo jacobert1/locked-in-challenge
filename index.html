@@ -1000,7 +1000,11 @@ function switchTab(id, el) {
     setDefaultLogDates();
   }
   if(id==='weigh') {
-    for(let p=0;p<2;p++) loadWeighInForWeek(p, document.getElementById(`weighWeek${p}`).value);
+    const currentWeek = document.getElementById('currentWeekDisplay').textContent || '1';
+    for(let p=0;p<2;p++) {
+      document.getElementById(`weighWeek${p}`).value = currentWeek;
+      loadWeighInForWeek(p, currentWeek);
+    }
   }
   if(id==='history') renderHistory();
   if(id==='settings') populateSettings();
@@ -1084,8 +1088,12 @@ async function init() {
   // Default each player's date to their earliest unlogged day
   setDefaultLogDates();
 
-  // Populate weigh-in fields for the currently selected week
-  for(let p=0;p<2;p++) loadWeighInForWeek(p, document.getElementById(`weighWeek${p}`).value);
+  // Default week selector to current week and load its data
+  const currentWeek = document.getElementById('currentWeekDisplay').textContent || '1';
+  for(let p=0;p<2;p++) {
+    document.getElementById(`weighWeek${p}`).value = currentWeek;
+    loadWeighInForWeek(p, currentWeek);
+  }
 
   // Reload toggles when date is changed
   document.getElementById('logDate0').addEventListener('change', () => loadTogglesForDate(0));
