@@ -690,7 +690,7 @@ function renderNames() {
 
 function renderScoreboard() {
   const scores = [0,1].map(p => ({
-    weight: Math.round(calcWeightPts(p)),
+    weight: calcWeightPts(p).toFixed(1),
     habit: calcHabitPts(p),
     savage: calcSavagePts(p),
     total: calcTotal(p)
