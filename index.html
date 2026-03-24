@@ -723,17 +723,17 @@ function renderProgress() {
     return;
   }
   const sp = state.startDate.split('-');
-  const start = new Date(sp[0], sp[1]-1, sp[2], 12, 0, 0);
-  const now = new Date();
-  now.setHours(12,0,0,0);
-  let end = null, totalDays = 42;
+  const startUTC = Date.UTC(+sp[0], +sp[1]-1, +sp[2]);
+  const t = new Date();
+  const nowUTC = Date.UTC(t.getFullYear(), t.getMonth(), t.getDate());
+  let totalDays = 42;
   if (state.endDate) {
     const ep = state.endDate.split('-');
-    end = new Date(ep[0], ep[1]-1, ep[2]);
-    totalDays = Math.max(1, Math.round((end-start)/86400000));
+    const endUTC = Date.UTC(+ep[0], +ep[1]-1, +ep[2]);
+    totalDays = Math.max(1, Math.round((endUTC - startUTC) / 86400000));
   }
   const totalWeeks = Math.max(1, Math.ceil(totalDays/7));
-  const diff = Math.max(0, Math.min(totalDays, Math.floor((now-start)/86400000)));
+  const diff = Math.max(0, Math.min(totalDays, Math.floor((nowUTC - startUTC) / 86400000)));
   const pct = Math.max(2, Math.round((diff/totalDays)*100));
   document.getElementById('progressFill').style.width = pct+'%';
   document.getElementById('progressPct').textContent = `Day ${diff+1} of ${totalDays}`;
