@@ -629,7 +629,7 @@ function calcHabitPts(p) {
   const end = state.endDate ? new Date(state.endDate) : null;
   const start = state.startDate ? new Date(state.startDate) : null;
   const totalDays = (start && end) ? Math.max(1, Math.round((end-start)/86400000)) : 42;
-  return Math.min(pts, totalDays * 5);
+  return Math.min(pts, totalDays * 6);
 }
 
 function calcWeightPts(p) {
